@@ -1,4 +1,5 @@
 name: Deploy Frontend
+
 on:
   push:
     branches:
@@ -9,38 +10,35 @@ jobs:
   build:
     runs-on: ubuntu-latest
     steps:
-      - name: Checkout del código
+      - name: 📥 Checkout del código
         uses: actions/checkout@v3
 
-      - name: Iniciar sesión en Docker Hub
+      - name: 🛠️ Construir imagen Docker
+        run: |
+          docker build -t ${{ secrets.DOCKERHUB_USERNAME }}/calculadora-front:latest \
+                       -t ${{ secrets.DOCKERHUB_USERNAME }}/calculadora-front:$(date +%s) .
+
+      - name: 🔑 Iniciar sesión en Docker Hub
         uses: docker/login-action@v2
         with:
-          username: ${{ secrets.DOCKERHUB_USERNAME}}
-          password: ${{ secrets.DOCKERHUB_TOKEN}}
+          username: ${{ secrets.DOCKERHUB_USERNAME }}
+          password: ${{ secrets.DOCKERHUB_TOKEN }}
 
-      - name: Construir imagen Docker
-        run: docker build -t ${{ secrets.DOCKERHUB_USERNAME }}/calculadora-front:latest -t ${{ secrets.DOCKERHUB_USERNAME }}/calculadora-front:$(date +%s) .
-        
-
-      - name: Verificar imágenes Docker locales
-        run: docker images      
-
-      - name: Subir imagen a Docker Hub
+      - name: 📤 Subir imagen a Docker Hub
         run: docker push --all-tags ${{ secrets.DOCKERHUB_USERNAME }}/calculadora-front
-      
 
   deploy:
     needs: build
     runs-on: ubuntu-latest
     steps:
-      - name: Desplegar en Railway
+      - name: 🚀 Desplegar en Railway
         env:
-            RAILWAY_TOKEN: ${{ secrets.RAILWAY_TOKEN}}
+            RAILWAY_TOKEN: ${{ secrets.RAILWAY_TOKEN }}
         run: |
           curl -X POST "https://backboard.railway.app/v2/deploy" \
             -H "Content-Type: application/json" \
-            -H "Authorization: Bearer ${{ secrets.RAILWAY_TOKEN}}" \
+            -H "Authorization: Bearer ${{ secrets.RAILWAY_TOKEN }}" \
             -d '{
               "service": "frontend",
-              "image": "${{ secrets.DOCKERHUB_USERNAME}}/calculadora-front:latest"
+              "image": "${{ secrets.DOCKERHUB_USERNAME }}/calculadora-front:latest"
             }'
