@@ -18,10 +18,15 @@ jobs:
           password: ${{ secrets.DOCKERHUB_TOKEN}}
 
       - name: Construir imagen Docker
-        run: docker build -t ${{ secrets.DOCKERHUB_USERNAME}}/calculadora-front:latest .
+        run: docker build -t ${{ secrets.DOCKERHUB_USERNAME }}/calculadora-front:latest -t ${{ secrets.DOCKERHUB_USERNAME }}/calculadora-front:$(date +%s) .
+        
+
+      - name: Verificar imágenes Docker locales
+        run: docker images      
 
       - name: Subir imagen a Docker Hub
-        run: docker push ${{ secrets.DOCKERHUB_USERNAME}}/calculadora-front:latest
+        run: docker push --all-tags ${{ secrets.DOCKERHUB_USERNAME }}/calculadora-front
+      
 
   deploy:
     needs: build
